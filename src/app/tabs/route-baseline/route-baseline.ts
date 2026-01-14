@@ -37,18 +37,45 @@ import { DataService } from '../../services/data';
                   (click)="toggleRoute(r.routeId)">
                   {{ r.routeId }}
                 </td>
+
                 <td>{{ r.avgStops }}</td>
                 <td>{{ r.avgMiles }}</td>
                 <td>{{ r.avgSPM }}</td>
-                <td
-                  [class.positive]="r.avgNDPPH > 0"
-                  [class.negative]="r.avgNDPPH < 0">
-                  {{ r.avgNDPPH }}
+
+                <!-- NDPPH WITH BAR -->
+                <td>
+                  <div class="metric-cell">
+                    <span class="metric-value">{{ r.avgNDPPH }}</span>
+                    <div class="bar-track">
+                      <div
+                        class="bar-fill"
+                        [ngClass]="{
+                          'bar-good': r.avgNDPPH >= 26,
+                          'bar-warn': r.avgNDPPH >= 23 && r.avgNDPPH < 26,
+                          'bar-bad': r.avgNDPPH < 23
+                        }"
+                        [style.width.%]="Math.min((r.avgNDPPH / 30) * 100, 100)">
+                      </div>
+                    </div>
+                  </div>
                 </td>
-                <td
-                  [class.positive]="r.avgOvUn < 0"
-                  [class.negative]="r.avgOvUn > 0">
-                  {{ r.avgOvUn }}
+
+                <!-- OV/UN WITH BAR -->
+                <td>
+                  <div class="metric-cell">
+                    <span class="metric-value">{{ r.avgOvUn }}</span>
+                    <div class="bar-track">
+                      <div
+                        class="bar-fill"
+                        [ngClass]="{
+                          'bar-good': r.avgOvUn <= -0.2,
+                          'bar-warn': r.avgOvUn > -0.2 && r.avgOvUn <= 0.2,
+                          'bar-bad': r.avgOvUn > 0.2
+                        }"
+                        [style.width.%]="Math.min(Math.abs(r.avgOvUn) * 50, 100)">
+                      </div>
+                    </div>
+                  </div>
                 </td>
               </tr>
 
@@ -152,6 +179,11 @@ import { DataService } from '../../services/data';
       padding: 8px;
       border-bottom: 1px solid #e0e0e0;
       font-size: 13px;
+      vertical-align: top;
+    }
+
+    tbody tr:hover {
+      background: #fff8e1;
     }
 
     .route {
@@ -164,9 +196,35 @@ import { DataService } from '../../services/data';
       text-decoration: underline;
     }
 
-    .positive { color: #2e7d32; font-weight: 600; }
-    .negative { color: #c62828; font-weight: 600; }
+    /* INLINE BAR VISUALS */
+    .metric-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
 
+    .metric-value {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .bar-track {
+      height: 6px;
+      background: #e6e6e6;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    .bar-good { background: #2e7d32; }
+    .bar-warn { background: #f9a825; }
+    .bar-bad  { background: #c62828; }
+
+    /* DRILL DOWN */
     .drill {
       background: #fafafa;
       padding: 16px;
@@ -196,6 +254,8 @@ import { DataService } from '../../services/data';
   `]
 })
 export class RouteBaselineComponent {
+  readonly Math = Math;
+  
   private dataService = inject(DataService);
 
   expandedRouteId: string | null = null;
@@ -226,8 +286,7 @@ export class RouteBaselineComponent {
     return values
       .map((v, i) => {
         const x = (i / (values.length - 1)) * 200 + 10;
-        const y =
-          50 - ((v - min) / (max - min || 1)) * 40;
+        const y = 50 - ((v - min) / (max - min || 1)) * 40;
         return `${x},${y}`;
       })
       .join(' ');
@@ -247,9 +306,7 @@ export class RouteBaselineComponent {
       let filtered = data.dailyHistory;
 
       if (config.date) {
-        filtered = filtered.filter(
-          (d: any) => d.date === config.date
-        );
+        filtered = filtered.filter((d: any) => d.date === config.date);
       } else if (config.dayOfWeek) {
         filtered = filtered.filter(
           (d: any) => d.dayOfWeek === config.dayOfWeek
