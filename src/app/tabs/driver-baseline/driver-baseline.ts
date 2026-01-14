@@ -40,21 +40,49 @@ import { DataService } from '../../services/data';
                   (click)="toggleDriver(d.driverId)">
                   {{ d.name }}
                 </td>
+
                 <td>{{ d.seniority }}</td>
                 <td>{{ d.bidRoute }}</td>
                 <td>{{ d.avgStops }}</td>
                 <td>{{ d.avgMiles }}</td>
                 <td>{{ d.avgSPM }}</td>
-                <td
-                  [class.positive]="d.avgNDPPH > 0"
-                  [class.negative]="d.avgNDPPH < 0">
-                  {{ d.avgNDPPH }}
+
+                <!-- NDPPH WITH BAR -->
+                <td>
+                  <div class="metric-cell">
+                    <span class="metric-value">{{ d.avgNDPPH }}</span>
+                    <div class="bar-track">
+                      <div
+                        class="bar-fill"
+                        [ngClass]="{
+                          'bar-good': d.avgNDPPH >= 26,
+                          'bar-warn': d.avgNDPPH >= 23 && d.avgNDPPH < 26,
+                          'bar-bad': d.avgNDPPH < 23
+                        }"
+                        [style.width.%]="Math.min((d.avgNDPPH / 30) * 100, 100)">
+                      </div>
+                    </div>
+                  </div>
                 </td>
-                <td
-                  [class.positive]="d.avgOvUn < 0"
-                  [class.negative]="d.avgOvUn > 0">
-                  {{ d.avgOvUn }}
+
+                <!-- OV/UN WITH BAR -->
+                <td>
+                  <div class="metric-cell">
+                    <span class="metric-value">{{ d.avgOvUn }}</span>
+                    <div class="bar-track">
+                      <div
+                        class="bar-fill"
+                        [ngClass]="{
+                          'bar-good': d.avgOvUn <= -0.2,
+                          'bar-warn': d.avgOvUn > -0.2 && d.avgOvUn <= 0.2,
+                          'bar-bad': d.avgOvUn > 0.2
+                        }"
+                        [style.width.%]="Math.min(Math.abs(d.avgOvUn) * 50, 100)">
+                      </div>
+                    </div>
+                  </div>
                 </td>
+
                 <td>{{ d.amPmSplit }}</td>
               </tr>
 
@@ -119,7 +147,7 @@ import { DataService } from '../../services/data';
     </section>
   `,
   styles: [`
-    .driver-shell { background: #fff; }
+    .driver-shell { background: #ffffff; }
 
     .header h2 {
       margin: 0;
@@ -151,12 +179,18 @@ import { DataService } from '../../services/data';
       color: white;
       padding: 10px 8px;
       font-size: 13px;
+      font-weight: 600;
     }
 
     td {
       padding: 8px;
       border-bottom: 1px solid #e0e0e0;
       font-size: 13px;
+      vertical-align: top;
+    }
+
+    tbody tr:hover {
+      background: #fff8e1;
     }
 
     .driver {
@@ -169,9 +203,35 @@ import { DataService } from '../../services/data';
       text-decoration: underline;
     }
 
-    .positive { color: #2e7d32; font-weight: 600; }
-    .negative { color: #c62828; font-weight: 600; }
+    /* INLINE BAR VISUALS */
+    .metric-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
 
+    .metric-value {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .bar-track {
+      height: 6px;
+      background: #e6e6e6;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    .bar-good { background: #2e7d32; }
+    .bar-warn { background: #f9a825; }
+    .bar-bad  { background: #c62828; }
+
+    /* DRILL DOWN */
     .drill {
       background: #fafafa;
       padding: 16px;
@@ -201,6 +261,8 @@ import { DataService } from '../../services/data';
   `]
 })
 export class DriverBaselineComponent {
+  readonly Math = Math;
+
   private dataService = inject(DataService);
 
   expandedDriverId: string | null = null;
@@ -231,8 +293,7 @@ export class DriverBaselineComponent {
     return values
       .map((v, i) => {
         const x = (i / (values.length - 1)) * 200 + 10;
-        const y =
-          50 - ((v - min) / (max - min || 1)) * 40;
+        const y = 50 - ((v - min) / (max - min || 1)) * 40;
         return `${x},${y}`;
       })
       .join(' ');
