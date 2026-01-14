@@ -1,0 +1,33 @@
+<h2>Route Baseline Overview</h2>
+
+<table *ngIf="routes.length; else empty" border="1" cellspacing="0" cellpadding="6">
+  <thead>
+    <tr>
+      <th>Route</th>
+      <th>Avg SPM</th>
+      <th>Avg NDPPH</th>
+      <th>Avg Miles</th>
+      <th>Avg Stops</th>
+      <th>Avg Ov/Un</th>
+      <th>SPORH</th>
+      <th>PlanDay vs PaidDay</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let r of routes">
+      <td>{{ r.routeId }}</td>
+      <td>{{ r.avgSPM }}</td>
+      <td>{{ r.avgNDPPH }}</td>
+      <td>{{ r.avgMiles }}</td>
+      <td>{{ r.avgStops }}</td>
+      <td>{{ r.avgOvUn }}</td>
+      <td>{{ r.sporh }}</td>
+      <td>{{ r.planDayVsPaidDay }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<ng-template #empty>
+  <p>No route baseline data available.</p>
+</ng-template>
+
