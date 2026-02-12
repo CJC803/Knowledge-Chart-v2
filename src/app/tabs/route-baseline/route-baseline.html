@@ -1,33 +1,81 @@
 <h2>Route Baseline Overview</h2>
 
-<table *ngIf="routes.length; else empty" border="1" cellspacing="0" cellpadding="6">
-  <thead>
-    <tr>
-      <th>Route</th>
-      <th>Avg SPM</th>
-      <th>Avg NDPPH</th>
-      <th>Avg Miles</th>
-      <th>Avg Stops</th>
-      <th>Avg Ov/Un</th>
-      <th>SPORH</th>
-      <th>PlanDay vs PaidDay</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let r of routes">
-      <td>{{ r.routeId }}</td>
-      <td>{{ r.avgSPM }}</td>
-      <td>{{ r.avgNDPPH }}</td>
-      <td>{{ r.avgMiles }}</td>
-      <td>{{ r.avgStops }}</td>
-      <td>{{ r.avgOvUn }}</td>
-      <td>{{ r.sporh }}</td>
-      <td>{{ r.planDayVsPaidDay }}</td>
-    </tr>
-  </tbody>
-</table>
+<div class="compare-bar">
+  <button (click)="showCompare = !showCompare">
+    {{ showCompare ? 'Hide Compare' : 'Show Compare' }}
+  </button>
+
+  <span class="compare-hint" *ngIf="!compareReady">
+    Select 2 routes to compare ({{ selectedRouteIds.length }}/2)
+  </span>
+</div>
+
+<div class="compare-panel" *ngIf="showCompare">
+  <div *ngIf="compareReady; else compareEmpty">
+    <div class="compare-cards">
+      <div class="compare-card">
+        <h3>{{ selectedRouteIds[0] }}</h3>
+        <p><strong>Occurrences:</strong> (next)</p>
+        <p><strong>% Occurrence:</strong> (next)</p>
+        <p><strong>Last Driven:</strong> (next)</p>
+        <p><strong>SPORH:</strong> (next)</p>
+        <p><strong>Service Elements:</strong> (next)</p>
+      </div>
+
+      <div class="compare-card">
+        <h3>{{ selectedRouteIds[1] }}</h3>
+        <p><strong>Occurrences:</strong> (next)</p>
+        <p><strong>% Occurrence:</strong> (next)</p>
+        <p><strong>Last Driven:</strong> (next)</p>
+        <p><strong>SPORH:</strong> (next)</p>
+        <p><strong>Service Elements:</strong> (next)</p>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #compareEmpty>
+    <p class="muted">Select two routes to activate comparison.</p>
+  </ng-template>
+</div>
+
+<ng-container *ngIf="routes$ | async as routes">
+  <table *ngIf="routes.length; else empty" border="1" cellspacing="0" cellpadding="6">
+    <thead>
+      <tr>
+        <th>Select</th>
+        <th>Route</th>
+        <th>Avg SPM</th>
+        <th>Avg NDPPH</th>
+        <th>Avg Miles</th>
+        <th>Avg Stops</th>
+        <th>Avg Ov/Un</th>
+        <th>SPORH</th>
+        <th>PlanDay vs PaidDay</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let r of routes">
+        <td>
+          <input
+            type="checkbox"
+            [checked]="isSelectedRoute(r.routeId)"
+            (change)="toggleSelectRoute(r.routeId)"
+          />
+        </td>
+        <td>{{ r.routeId }}</td>
+        <td>{{ r.avgSPM }}</td>
+        <td>{{ r.avgNDPPH }}</td>
+        <td>{{ r.avgMiles }}</td>
+        <td>{{ r.avgStops }}</td>
+        <td>{{ r.avgOvUn }}</td>
+        <td>{{ r.sporh }}</td>
+        <td>{{ r.planDayVsPaidDay }}</td>
+      </tr>
+    </tbody>
+  </table>
+</ng-container>
 
 <ng-template #empty>
   <p>No route baseline data available.</p>
 </ng-template>
-

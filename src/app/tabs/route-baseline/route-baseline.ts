@@ -19,6 +19,34 @@ export class RouteBaselineComponent {
   expandedRouteId: string | null = null;
   private dailyCache: any[] = [];
 
+  selectedRouteIds: string[] = [];
+  showCompare = true;
+
+  toggleSelectRoute(routeId: string) {
+    const idx = this.selectedRouteIds.indexOf(routeId);
+
+    if (idx >= 0) {
+      this.selectedRouteIds = this.selectedRouteIds.filter(id => id !== routeId);
+      return;
+    }
+
+    // limit to 2 for demo
+    if (this.selectedRouteIds.length >= 2) {
+      this.selectedRouteIds = [this.selectedRouteIds[1], routeId];
+    } else {
+      this.selectedRouteIds = [...this.selectedRouteIds, routeId];
+    }
+  }
+
+  isSelectedRoute(routeId: string) {
+    return this.selectedRouteIds.includes(routeId);
+  }
+
+  get compareReady() {
+    return this.selectedRouteIds.length === 2;
+  }
+
+
   constructor() {
     this.dataService.data$.subscribe((d) => {
       this.dailyCache = d?.dailyHistory ?? [];
